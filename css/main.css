@@ -1,0 +1,16 @@
+#grid-map { display: flex; flex-direction: column; }
+#grid-map>div { display: flex; flex-direction:row; }
+#grid-map>div>div { box-sizing: border-box; width: 25px; height: 25px; background: pink; border: 1px solid red; }
+#grid-map>div>div.active { background: red; }
+
+
+fieldset { display: inline-block; border-radius: 0.25em; padding: 0.5em; border: 1px solid #afafaf; background: #efefef; vertical-align: top; }
+fieldset legend {border-radius: 0.25em; padding: 0.1em; border: 1px solid #afafaf; background: #000; color: #FFF; }
+input[type=range][orient=vertical]
+{
+    writing-mode: bt-lr; /* IE */
+    -webkit-appearance: slider-vertical; /* WebKit */
+    width: 8px;
+    height: 175px;
+    padding: 0 5px;
+}

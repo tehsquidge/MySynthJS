@@ -1,10 +1,60 @@
 <html>
     <head>
         <title>synthJS</title>
-        <link href="css/main.css">
+        <link rel="stylesheet"  href="css/main.css">
         <script src="js/main.js"></script>
     </head>
     <body>
+        <form id="front-panel">
+            <fieldset>
+                <legend>VCO</legend>
+                <label for='octave'>
+                Octave
+                </label>
+                <input type="range" min="0" max="5" value="1" id="octave">
+            </fieldset>
+            <fieldset id="vca-env">
+                <legend>VCA ENV</legend>
+                <input orient="vertical" type="range" min="0" max="1" step="0.01" id="vca-attack">
+                <label for='vca-attack'>
+                Attack
+                </label>
+                <input orient="vertical" type="range" min="0" max="1" step="0.01" id="vca-sustain">
+                <label for='vca-sustain'>
+                sustain
+                </label>
+                <input orient="vertical" type="range" min="0" max="1" step="0.01" id="vca-release">
+                <label for='vca-release'>
+                release
+                </label>
+            </fieldset>
+        </form>
         
+        <div id="grid-map">
+        <div>
+            <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+        </div>
+        <div>
+            <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+        </div>
+        <div>
+            <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+        </div>
+        <div>
+            <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+        </div>
+         <div>
+            <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+        </div>
+        <div>
+            <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+        </div>
+        <div>
+            <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+        </div>
+        <div>
+            <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+        </div>
+        </div>
     </body>
 </html>

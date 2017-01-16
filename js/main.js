@@ -90,18 +90,18 @@ function Voice(){
     this._vca.gain.value = 0;
             
     this._vcaEnv = new AsrEG();
-    this._vcaEnv.attack = 0.1;
+    this._vcaEnv.attack = 0.4;
     this._vcaEnv.sustain = 0.4;
     this._vcaEnv.release = 0.2;
     this._vcaEnv.connect(this._vca.gain);
     
     this._filter = audioCtx.createBiquadFilter();
     this._filter.frequency.value = 0;
-    this._filter.Q.value = 0.6;
+    this._filter.Q.value = 10;
     this._filter.type = 'lowpass';
     
     this._filterEnv = new AsrEG();
-    this._filterEnv.attack = 0.25;
+    this._filterEnv.attack = 0.2;
     this._filterEnv.sustain = 500;
     this._filterEnv.release = 0.5;
     this._filterEnv.connect(this._filter.frequency);
@@ -115,8 +115,11 @@ Voice.prototype = Object.create(null, {
     constructor: {
         value: Voice
     },
-    setFreq: {
-        value: function(newFreq){
+    freq: {
+        get: function(){
+            return this._oscSquare.frequency.value;
+        },
+        set: function(newFreq){
             this._oscSquare.frequency.setValueAtTime(newFreq,audioCtx.currentTime);
             this._oscSaw.frequency.setValueAtTime(newFreq,audioCtx.currentTime);
             this._oscSine.frequency.setValueAtTime(newFreq,audioCtx.currentTime);
@@ -133,10 +136,37 @@ Voice.prototype = Object.create(null, {
             this._vcaEnv.gateOff();
             this._filterEnv.gateOff();
         }
+    },
+    vcaEnvParams: {
+        get: function(){
+            return { a: this._vcaEnv.attack, s: this._vcaEnv.sustain, r: this._vcaEnv.release }
+        },
+        set: function(p){
+            this._vcaEnv.attack = parseFloat(p.a);
+            this._vcaEnv.sustain = parseFloat(p.s);
+            this._vcaEnv.release = parseFloat(p.r);
+        }
+    },
+    vcaEnvParams: {
+        get: function(){
+            return { a: this._vcaEnv.attack, s: this._vcaEnv.sustain, r: this._vcaEnv.release }
+        },
+        set: function(p){
+            this._vcaEnv.attack = parseFloat(p.a);
+            this._vcaEnv.sustain = parseFloat(p.s);
+            this._vcaEnv.release = parseFloat(p.r);
+        }
     }
 });
 
-var Voice1 = new Voice();
+
+var Voices = [];
+for(var i = 0; i < 8; i++){
+    Voices[i] = new Voice();
+}
+
+var VoiceIdx = 0;
+
 
 var notes = {
     'Ab': 12.98,
@@ -164,7 +194,7 @@ var map = [
     [['D' ,2],['E' ,2],['F' ,2],['G' ,2],['A' ,3],['C' ,3],['D' ,3],['E' ,3]],
     [['A' ,2],['B' ,2],['C' ,2],['D' ,2],['E' ,2],['F' ,2],['G' ,2],['A' ,3]],
     [['E' ,1],['F' ,1],['G' ,1],['A' ,2],['B' ,2],['C' ,2],['D' ,2],['E' ,2]],
-    [['B' ,0],['C' ,1],['D' ,1],['E' ,1],['F' ,1],['G' ,1],['A' ,2],['B' ,2]],
+    [['B' ,1],['C' ,1],['D' ,1],['E' ,1],['F' ,1],['G' ,1],['A' ,2],['B' ,2]],
     [['F' ,0],['G' ,0],['A' ,1],['B' ,1],['C' ,1],['D' ,1],['E' ,1],['F' ,1]],
     [['C' ,0],['D' ,0],['E' ,0],['F' ,0],['G' ,0],['A' ,1],['B' ,1],['C' ,1]]
 ];
@@ -191,19 +221,26 @@ if (navigator.requestMIDIAccess) {
                 var y = message.data[1] - (16 * x);
                 try {
                     var n = map[x][y];
-                    console.log(n);
+                    var freq = notes[n[0]] * Math.pow(2,n[1]+parseInt(document.getElementById('octave').value));
                     if(message.data[2] == 127){
-                        var freq = notes[n[0]] * Math.pow(2,n[1]+1);
-                        console.log(freq);
-                        Voice1.gateOn();
-                        Voice1.setFreq(freq);
+                        Voices[VoiceIdx].gateOn();
+                        Voices[VoiceIdx].freq = freq;
+                        VoiceIdx++;
+                        if(VoiceIdx == Voices.size)
+                            VoiceIdx = 0;
+                        document.querySelector('#grid-map>div:nth-child(' + (x+1) + ')>div:nth-child(' + (y+1) + ')').classList.add('active');
                     }else{
-                        Voice1.gateOff();
+                        for(var i = 0; i < 8; i++){
+                            var oldfreq =Voices[i].freq;
+                            if(oldfreq == freq)
+                                Voices[i].gateOff();
+                        }
+                        document.querySelector('#grid-map>div:nth-child(' + (x+1) + ')>div:nth-child(' + (y+1) + ')').classList.remove('active');
                     }
                     
                 }
                 catch(e){
-                    console.log('not mapped')
+                    console.log(e)
                 }
             }
         },
@@ -212,3 +249,25 @@ if (navigator.requestMIDIAccess) {
         }
     );
 }
+
+
+var domReady = function(callback) {
+    document.readyState === "interactive" || document.readyState === "complete" ? callback() : document.addEventListener("DOMContentLoaded", callback);
+};
+
+domReady(function() {
+    document.querySelectorAll('#vca-env input').forEach(function(e){
+        e.oninput = function(){
+            Voice1.vcaEnvParams = { a: document.querySelector('#vca-attack').value, s: document.querySelector('#vca-sustain').value, r: document.querySelector('#vca-release').value };   
+        }
+    });
+    document.querySelectorAll('#vca-env input').forEach(function(e){
+        e.oninput = function(){
+            Voice1.vcaEnvParams = { a: document.querySelector('#vca-attack').value, s: document.querySelector('#vca-sustain').value, r: document.querySelector('#vca-release').value };   
+        }
+    });
+});
+
+document.querySelectorAll('a').forEach(function(a){
+   a.classList.toggle('active'); 
+});
