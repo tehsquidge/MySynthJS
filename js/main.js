@@ -312,6 +312,25 @@ if (navigator.requestMIDIAccess) {
 
 
 domReady(function() {
+    
+    var rows = Array.prototype.slice.call( document.getElementById('grid-map').children );
+    for(y = rows.length -1 ; y >= 0; y--){
+        var cells = Array.prototype.slice.call( rows[y].children ); 
+        for(x = 0 ; x < cells.length; x++ ){
+            var n = map[x][y];
+            var freq = notes[n[0]] * Math.pow(2,n[1]+parseInt(document.getElementById('octave').value));
+            cells[x].setAttribute('data-freq', freq);
+            cells[x].onmousedown =  function(){
+                voiceManager.keyDown(this.getAttribute('data-freq'));
+                this.classList.add('active');               
+            };
+            cells[x].onmouseup = function(){
+                voiceManager.keyUp(this.getAttribute('data-freq'));
+                this.classList.remove('active');               
+            }
+        }
+    }
+    
     document.querySelectorAll('#vca-env input').forEach(function(e){
         e.oninput = function(){
             var v = { a: document.querySelector('#vca-attack').value, s: document.querySelector('#vca-sustain').value, r: document.querySelector('#vca-release').value };
@@ -328,8 +347,4 @@ domReady(function() {
             });
         }
     });
-});
-
-document.querySelectorAll('a').forEach(function(a){
-   a.classList.toggle('active'); 
 });
