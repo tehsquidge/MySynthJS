@@ -1,5 +1,3 @@
-var audioCtx = new AudioContext();
-
 function AsrEG(){
     this._attackTime = 0.1;
     this._sustainLevel = 0.5;
@@ -91,8 +89,8 @@ function Voice(){
             
     this._vcaEnv = new AsrEG();
     this._vcaEnv.attack = 0.4;
-    this._vcaEnv.sustain = 0.4;
-    this._vcaEnv.release = 0.2;
+    this._vcaEnv.sustain = 0.05;
+    this._vcaEnv.release = 0.4;
     this._vcaEnv.connect(this._vca.gain);
     
     this._filter = audioCtx.createBiquadFilter();
@@ -147,26 +145,92 @@ Voice.prototype = Object.create(null, {
             this._vcaEnv.release = parseFloat(p.r);
         }
     },
-    vcaEnvParams: {
+    filteraEnvParams: {
         get: function(){
-            return { a: this._vcaEnv.attack, s: this._vcaEnv.sustain, r: this._vcaEnv.release }
+            return { a: this._filterEnv.attack, s: this._filterEnv.sustain, r: this._filterEnv.release }
         },
         set: function(p){
-            this._vcaEnv.attack = parseFloat(p.a);
-            this._vcaEnv.sustain = parseFloat(p.s);
-            this._vcaEnv.release = parseFloat(p.r);
+            this._filterEnv.attack = parseFloat(p.a);
+            this._filterEnv.sustain = parseFloat(p.s);
+            this._filterEnv.release = parseFloat(p.r);
         }
     }
 });
 
-
-var Voices = [];
-for(var i = 0; i < 8; i++){
-    Voices[i] = new Voice();
+function VoicePool() {
+    this._voiceCount = 8;
+    this._voices = [];
+    this._voicesFrequencies = [];
+    this._voiceCycleIdx = 0;
+    
+    for(var i = 0; i < this._voiceCount; i++){
+        this._voices[i] = new Voice();
+        this._voicesFrequencies[i] = 0;
+    }
 }
 
-var VoiceIdx = 0;
+VoicePool.prototype = Object.create(null,{
+    constructor: {
+        value: VoicePool
+    },
+    getFreeVoice: {
+        value: function(freq){
+            var v = this._voiceCycleIdx; //if we can't find a free voice we'll use the first
+            for(var i = 0; i < this._voiceCount; i++){
+                var idx = this._voiceCycleIdx + i;
+                if(idx = this._voiceCount){
+                    idx -= this._voiceCycleIdx;
+                }
+                if(this._voicesFrequencies[idx] == 0){ //if the voice is free
+                    v = idx;
+                    break;
+                }
+            }
+            this._voiceCycleIdx++;
+            if(this._voiceCycleIdx == this._voiceCount)
+                this._voiceCycleIdx = 0;
+            this._voicesFrequencies[v] = freq;
+            return v;
+        },
+        enumerable: false, //hide from devs
+        writable: false, //readonly
+        configurable: false //can not change above
+    },
+    releaseVoice: {
+        value: function(freq){
+            for(var i = 0; i < this._voiceCount; i++){
+                if(this._voicesFrequencies[i] == freq){ //if the voice is playing a released freq
+                    this._voicesFrequencies[i] = 0;
+                    this._voices[i].gateOff();
+                }
+            }
+        },
+        enumerable: false, //hide from devs
+        writable: false, //readonly
+        configurable: false //can not change above
+    },
+    keyDown: {
+        value: function(freq){
+                var voiceIdx = this.getFreeVoice(freq);
+                this._voices[voiceIdx].gateOn();
+                this._voices[voiceIdx].freq = freq;
+        }
+    },
+    keyUp: {
+        value: function(freq){
+                var voiceIdx = this.releaseVoice(freq);
+        }
+    },
+    getVoices: {
+        value: function(){
+            return this._voices;
+        }
+    }
+});
 
+var audioCtx = new AudioContext();
+
+var voiceManager = new VoicePool();
 
 var notes = {
     'Ab': 12.98,
@@ -199,8 +263,12 @@ var map = [
     [['C' ,0],['D' ,0],['E' ,0],['F' ,0],['G' ,0],['A' ,1],['B' ,1],['C' ,1]]
 ];
 
-
 var MidiDevices = null;
+
+
+var domReady = function(callback) {
+    document.readyState === "interactive" || document.readyState === "complete" ? callback() : document.addEventListener("DOMContentLoaded", callback);
+};
 
 if (navigator.requestMIDIAccess) {
     navigator.requestMIDIAccess()
@@ -223,18 +291,10 @@ if (navigator.requestMIDIAccess) {
                     var n = map[x][y];
                     var freq = notes[n[0]] * Math.pow(2,n[1]+parseInt(document.getElementById('octave').value));
                     if(message.data[2] == 127){
-                        Voices[VoiceIdx].gateOn();
-                        Voices[VoiceIdx].freq = freq;
-                        VoiceIdx++;
-                        if(VoiceIdx == Voices.size)
-                            VoiceIdx = 0;
+                        voiceManager.keyDown(freq);
                         document.querySelector('#grid-map>div:nth-child(' + (x+1) + ')>div:nth-child(' + (y+1) + ')').classList.add('active');
                     }else{
-                        for(var i = 0; i < 8; i++){
-                            var oldfreq =Voices[i].freq;
-                            if(oldfreq == freq)
-                                Voices[i].gateOff();
-                        }
+                        voiceManager.keyUp(freq);
                         document.querySelector('#grid-map>div:nth-child(' + (x+1) + ')>div:nth-child(' + (y+1) + ')').classList.remove('active');
                     }
                     
@@ -251,19 +311,21 @@ if (navigator.requestMIDIAccess) {
 }
 
 
-var domReady = function(callback) {
-    document.readyState === "interactive" || document.readyState === "complete" ? callback() : document.addEventListener("DOMContentLoaded", callback);
-};
-
 domReady(function() {
     document.querySelectorAll('#vca-env input').forEach(function(e){
         e.oninput = function(){
-            Voice1.vcaEnvParams = { a: document.querySelector('#vca-attack').value, s: document.querySelector('#vca-sustain').value, r: document.querySelector('#vca-release').value };   
+            var v = { a: document.querySelector('#vca-attack').value, s: document.querySelector('#vca-sustain').value, r: document.querySelector('#vca-release').value };
+            voiceManager.getVoices().forEach(function(e){
+                e.vcaEnvParams = v;   
+            });
         }
     });
-    document.querySelectorAll('#vca-env input').forEach(function(e){
+    document.querySelectorAll('#filter-env input').forEach(function(e){
         e.oninput = function(){
-            Voice1.vcaEnvParams = { a: document.querySelector('#vca-attack').value, s: document.querySelector('#vca-sustain').value, r: document.querySelector('#vca-release').value };   
+            var v = { a: document.querySelector('#filter-attack').value, s: document.querySelector('#filter-sustain').value, r: document.querySelector('#filter-release').value };
+            voiceManager.getVoices().forEach(function(e){
+                e.filterEnvParams = v;   
+            });
         }
     });
 });
