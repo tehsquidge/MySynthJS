@@ -58,8 +58,15 @@ domReady(function() {
             }
         }
     }
-    
-    document.querySelectorAll('#vca-env input').forEach(function(e){
+    document.querySelectorAll('#filter-controls input, #filter-controls select').forEach(function(e){
+        e.oninput = function(){
+            var v = { c: document.querySelector('#filter-cutoff').value, r: document.querySelector('#filter-resonance').value, t: document.querySelector('#filter-type').value };
+            voiceManager.getVoices().forEach(function(e){
+                e.filterParams = v;   
+            });
+        }
+    });   
+    document.querySelectorAll('#vca-env-controls input').forEach(function(e){
         e.oninput = function(){
             var v = { a: document.querySelector('#vca-attack').value, s: document.querySelector('#vca-sustain').value, r: document.querySelector('#vca-release').value };
             voiceManager.getVoices().forEach(function(e){
@@ -67,7 +74,7 @@ domReady(function() {
             });
         }
     });
-    document.querySelectorAll('#filter-env input').forEach(function(e){
+    document.querySelectorAll('#filter-env-controls input').forEach(function(e){
         e.oninput = function(){
             var v = { a: document.querySelector('#filter-attack').value, s: document.querySelector('#filter-sustain').value, r: document.querySelector('#filter-release').value };
             voiceManager.getVoices().forEach(function(e){

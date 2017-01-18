@@ -35,6 +35,7 @@ function Voice(){
     
     this._filter = audioCtx.createBiquadFilter();
     this._filter.frequency.value = 0;
+    this._filter.frequency.base = 0;
     this._filter.Q.value = 10;
     this._filter.type = 'lowpass';
     
@@ -85,7 +86,7 @@ Voice.prototype = Object.create(null, {
             this._vcaEnv.release = parseFloat(p.r);
         }
     },
-    filteraEnvParams: {
+    filterEnvParams: {
         get: function(){
             return { a: this._filterEnv.attack, s: this._filterEnv.sustain, r: this._filterEnv.release }
         },
@@ -93,6 +94,16 @@ Voice.prototype = Object.create(null, {
             this._filterEnv.attack = parseFloat(p.a);
             this._filterEnv.sustain = parseFloat(p.s);
             this._filterEnv.release = parseFloat(p.r);
+        }
+    },
+    filterParams: {
+        get: function(){
+            
+        },
+        set: function(p){
+            this._filter.frequency.base = parseFloat(p.c);
+            this._filter.Q.value = parseFloat(p.r);
+            this._filter.type = p.t;
         }
     }
 });

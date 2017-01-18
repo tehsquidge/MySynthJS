@@ -16,11 +16,12 @@ AsrEG.prototype = Object.create(null,{
         }
     },
     gateOn: {
-        value: function(){
+        value: function(base){
             if(this._param){
+                base = (typeof base !== 'undefined') ?  base : 0;
                 var now = audioCtx.currentTime;
                 this._param.cancelScheduledValues(now);
-                this._param.linearRampToValueAtTime(this._sustainLevel, now + this._attackTime);
+                this._param.linearRampToValueAtTime(base + this._sustainLevel, now + this._attackTime);
             }
         }
     },
@@ -145,7 +146,7 @@ Voice.prototype = Object.create(null, {
             this._vcaEnv.release = parseFloat(p.r);
         }
     },
-    filteraEnvParams: {
+    filterEnvParams: {
         get: function(){
             return { a: this._filterEnv.attack, s: this._filterEnv.sustain, r: this._filterEnv.release }
         },
@@ -153,6 +154,16 @@ Voice.prototype = Object.create(null, {
             this._filterEnv.attack = parseFloat(p.a);
             this._filterEnv.sustain = parseFloat(p.s);
             this._filterEnv.release = parseFloat(p.r);
+        }
+    },
+    filterParams: {
+        get: function(){
+            
+        },
+        set: function(p){
+            this._filter.frequency.value = parseFloat(p.c);
+            this._filter.Q.value = parseFloat(p.r);
+            this._filter.type = p.t;
         }
     }
 });
@@ -330,8 +341,15 @@ domReady(function() {
             }
         }
     }
-    
-    document.querySelectorAll('#vca-env input').forEach(function(e){
+    document.querySelectorAll('#filter-controls input, #filter-controls select').forEach(function(e){
+        e.oninput = function(){
+            var v = { c: document.querySelector('#filter-cutoff').value, r: document.querySelector('#filter-resonance').value, t: document.querySelector('#filter-type').value };
+            voiceManager.getVoices().forEach(function(e){
+                e.filterParams = v;   
+            });
+        }
+    });   
+    document.querySelectorAll('#vca-env-controls input').forEach(function(e){
         e.oninput = function(){
             var v = { a: document.querySelector('#vca-attack').value, s: document.querySelector('#vca-sustain').value, r: document.querySelector('#vca-release').value };
             voiceManager.getVoices().forEach(function(e){
@@ -339,7 +357,7 @@ domReady(function() {
             });
         }
     });
-    document.querySelectorAll('#filter-env input').forEach(function(e){
+    document.querySelectorAll('#filter-env-controls input').forEach(function(e){
         e.oninput = function(){
             var v = { a: document.querySelector('#filter-attack').value, s: document.querySelector('#filter-sustain').value, r: document.querySelector('#filter-release').value };
             voiceManager.getVoices().forEach(function(e){

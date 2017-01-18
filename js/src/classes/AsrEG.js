@@ -16,11 +16,13 @@ AsrEG.prototype = Object.create(null,{
         }
     },
     gateOn: {
-        value: function(){
+        value: function(base){
             if(this._param){
+                base = (typeof base !== 'undefined') ?  base : this._param.base;
+                base = (typeof base !== 'undefined') ?  base : 0;
                 var now = audioCtx.currentTime;
                 this._param.cancelScheduledValues(now);
-                this._param.linearRampToValueAtTime(this._sustainLevel, now + this._attackTime);
+                this._param.linearRampToValueAtTime(base + this._sustainLevel, now + this._attackTime);
             }
         }
     },
