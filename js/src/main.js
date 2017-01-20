@@ -58,6 +58,15 @@ domReady(function() {
             }
         }
     }
+    document.querySelectorAll('#vco-controls input').forEach(function(e){
+        e.oninput = function(){
+            var mix = { square: document.querySelector('#vco-square-mix').value, saw: document.querySelector('#vco-saw-mix').value, sine: document.querySelector('#vco-sine-mix').value };
+            voiceManager.getVoices().forEach(function(e){
+                e.vcoMixParams = mix;   
+            });
+        }
+    });  
+    
     document.querySelectorAll('#filter-controls input, #filter-controls select').forEach(function(e){
         e.oninput = function(){
             var v = { c: document.querySelector('#filter-cutoff').value, r: document.querySelector('#filter-resonance').value, t: document.querySelector('#filter-type').value };

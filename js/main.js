@@ -18,6 +18,7 @@ AsrEG.prototype = Object.create(null,{
     gateOn: {
         value: function(base){
             if(this._param){
+                base = (typeof base !== 'undefined') ?  base : this._param.base;
                 base = (typeof base !== 'undefined') ?  base : 0;
                 var now = audioCtx.currentTime;
                 this._param.cancelScheduledValues(now);
@@ -65,23 +66,35 @@ function Voice(){
     this._oscSquare.frequency.value = 440;
     this._oscSquare.start();
     
+    this._oscSquareAmp = audioCtx.createGain();
+    this._oscSquareAmp.gain.value = 0.5;
+    this._oscSquare.connect(this._oscSquareAmp);
+    
     this._oscSaw = audioCtx.createOscillator();
     this._oscSaw.type = 'sawtooth';
     this._oscSaw.frequency.value = 440;
     this._oscSaw.start();
+
+    this._oscSawAmp = audioCtx.createGain();
+    this._oscSawAmp.gain.value = 0.5;
+    this._oscSaw.connect(this._oscSawAmp);
     
     this._oscSine = audioCtx.createOscillator();
     this._oscSine.type = 'sine';
     this._oscSine.frequency.value = 440;
     this._oscSine.start();
     
+    this._oscSineAmp = audioCtx.createGain();
+    this._oscSineAmp.gain.value = 0;
+    this._oscSine.connect(this._oscSineAmp);
+    
     this._oscMixer = audioCtx.createChannelMerger(2);
-    this._oscSaw.connect(this._oscMixer,0,0);
-    this._oscSaw.connect(this._oscMixer,0,1);
-    this._oscSquare.connect(this._oscMixer,0,0);
-    this._oscSquare.connect(this._oscMixer,0,1);
-    this._oscSine.connect(this._oscMixer,0,0);
-    this._oscSine.connect(this._oscMixer,0,1);
+    this._oscSawAmp.connect(this._oscMixer,0,0);
+    this._oscSawAmp.connect(this._oscMixer,0,1);
+    this._oscSquareAmp.connect(this._oscMixer,0,0);
+    this._oscSquareAmp.connect(this._oscMixer,0,1);
+    this._oscSineAmp.connect(this._oscMixer,0,0);
+    this._oscSineAmp.connect(this._oscMixer,0,1);
     this._oscMixerOutput = audioCtx.createMediaStreamDestination();
     this._oscMixer.connect(this._oscMixerOutput);
     
@@ -96,6 +109,7 @@ function Voice(){
     
     this._filter = audioCtx.createBiquadFilter();
     this._filter.frequency.value = 0;
+    this._filter.frequency.base = 0;
     this._filter.Q.value = 10;
     this._filter.type = 'lowpass';
     
@@ -158,14 +172,26 @@ Voice.prototype = Object.create(null, {
     },
     filterParams: {
         get: function(){
-            
+            return { c: this._filter.frequency.base, r: this._filter.Q.value, t: this._filter.type}
         },
         set: function(p){
-            this._filter.frequency.value = parseFloat(p.c);
+            this._filter.frequency.base = parseFloat(p.c);
             this._filter.Q.value = parseFloat(p.r);
             this._filter.type = p.t;
         }
+    },
+    vcoMixParams: {
+        get: function(){
+            return { square: this._filter.frequency.base, saw: this._filter.Q.value, sine: this._filter.type}
+        },
+        set: function(p){
+            this._oscSquareAmp.gain.value = parseFloat(p.square);
+            this._oscSawAmp.gain.value = parseFloat(p.saw);
+            this._oscSineAmp.gain.value = parseFloat(p.sine);
+        }
     }
+    
+
 });
 
 function VoicePool() {
@@ -341,6 +367,15 @@ domReady(function() {
             }
         }
     }
+    document.querySelectorAll('#vco-controls input').forEach(function(e){
+        e.oninput = function(){
+            var mix = { square: document.querySelector('#vco-square-mix').value, saw: document.querySelector('#vco-saw-mix').value, sine: document.querySelector('#vco-sine-mix').value };
+            voiceManager.getVoices().forEach(function(e){
+                e.vcoMixParams = mix;   
+            });
+        }
+    });  
+    
     document.querySelectorAll('#filter-controls input, #filter-controls select').forEach(function(e){
         e.oninput = function(){
             var v = { c: document.querySelector('#filter-cutoff').value, r: document.querySelector('#filter-resonance').value, t: document.querySelector('#filter-type').value };

@@ -12,6 +12,21 @@
                 Octave
                 </label>
                 <input type="range" min="0" max="5" value="1" id="octave">
+                <fieldset>
+                    <legend>MIX</legend>
+                    <label for='vco-square-mix'>
+                    Square
+                    </label>
+                    <input type="range" min="0" max="1" value="0.5" step=".001" id="vco-square-mix">
+                    <label for='vco-saw-mix'>
+                    Saw
+                    </label>
+                    <input type="range" min="0" max="1" value="0.5" step=".001" id="vco-saw-mix">
+                    <label for='vco-sine-mix'>
+                    Sine
+                    </label>
+                    <input type="range" min="0" max="1" value="0.5" step=".001" id="vco-sine-mix">
+                </fieldset>
             </fieldset>
             <fieldset id="filter-controls">
                 <legend>FILTER</legend>
@@ -26,6 +41,11 @@
                 <select id="filter-type">
                     <option value='lowpass'>Lowpass</option>
                     <option value='highpass'>Highpass</option>
+                    <option value='bandpass'>Bandpass</option>
+                    <option value='highshelf'>Highshelf</option>
+                    <option value='lowshelf'>Lowshelf</option>
+                    <option value='notchpeaking'>Notch Peaking</option>
+                    <option value='allpass'>Allpass</option>
                 </select>
                 <label for='filter-type'>
                 Resonance
