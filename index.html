@@ -8,48 +8,49 @@
         <form id="front-panel">
             <fieldset id="vco-controls">
                 <legend>VCO</legend>
-                <label for='octave'>
-                Octave
-                </label>
-                <input type="range" min="0" max="5" value="1" id="octave">
+                <div class="">
+                    <label for='octave'>Octave</label>
+                    <input type="range" min="0" max="5" value="1" id="octave">
+                </div>
                 <fieldset>
                     <legend>MIX</legend>
-                    <label for='vco-square-mix'>
-                    Square
-                    </label>
-                    <input type="range" min="0" max="1" value="0.5" step=".001" id="vco-square-mix">
-                    <label for='vco-saw-mix'>
-                    Saw
-                    </label>
-                    <input type="range" min="0" max="1" value="0.5" step=".001" id="vco-saw-mix">
-                    <label for='vco-sine-mix'>
-                    Sine
-                    </label>
-                    <input type="range" min="0" max="1" value="0.5" step=".001" id="vco-sine-mix">
+                    <div class="vertical-slider">
+                        <input orient="vertical" type="range" min="0" max="1" value="0.5" step=".001" id="vco-square-mix">
+                        <label for='vco-square-mix'>Square</label>
+                    </div>
+                    <div class="vertical-slider">
+                        <input orient="vertical" type="range" min="0" max="1" value="0.5" step=".001" id="vco-saw-mix">
+                        <label for='vco-saw-mix'>Saw</label>
+                    </div>
+                    <div class="vertical-slider">
+                        <input orient="vertical" type="range" min="0" max="1" value="0.5" step=".001" id="vco-sine-mix">
+                        <label for='vco-sine-mix'>Sine</label>
+                    </div>
                 </fieldset>
             </fieldset>
             <fieldset id="filter-controls">
                 <legend>FILTER</legend>
-                <input orient="vertical" type="range" min="0" max="500" step="1" id="filter-cutoff">
-                <label for='filter-cutoff'>
-                Cutoff
-                </label>
-                <input orient="vertical" type="range" min="0" max="20" step=".001" id="filter-resonance">
-                <label for='filter-resonance'>
-                Resonance
-                </label>
-                <select id="filter-type">
-                    <option value='lowpass'>Lowpass</option>
-                    <option value='highpass'>Highpass</option>
-                    <option value='bandpass'>Bandpass</option>
-                    <option value='highshelf'>Highshelf</option>
-                    <option value='lowshelf'>Lowshelf</option>
-                    <option value='notchpeaking'>Notch Peaking</option>
-                    <option value='allpass'>Allpass</option>
-                </select>
-                <label for='filter-type'>
-                Resonance
-                </label>
+                <div>
+                    <label for='filter-type'>Type</label>
+                    <select id="filter-type">
+                        <option value='lowpass'>Lowpass</option>
+                        <option value='highpass'>Highpass</option>
+                        <option value='bandpass'>Bandpass</option>
+                        <option value='highshelf'>Highshelf</option>
+                        <option value='lowshelf'>Lowshelf</option>
+                        <option value='notch'>Notch</option>
+                        <option value='peaking'>Peaking</option>
+                        <option value='allpass'>Allpass</option>
+                    </select>
+                </div>
+                <div class="vertical-slider">
+                    <input orient="vertical" type="range" min="0" max="500" step="1" id="filter-cutoff">
+                    <label for='filter-cutoff'>Cutoff</label>
+                </div>
+                <div class="vertical-slider">
+                    <input orient="vertical" type="range" min="0" max="20" step=".001" id="filter-resonance">
+                    <label for='filter-resonance'>Resonance</label>
+                </div>
             </fieldset>
             <fieldset id="vca-env-controls">
                 <legend>VCA ENV</legend>
@@ -74,12 +75,23 @@
                 </label>
                 <input orient="vertical" type="range" min="0" max="1000" step="1" id="filter-sustain">
                 <label for='filter-sustain'>
-                sustain
+                Sustain
                 </label>
                 <input orient="vertical" type="range" min="0" max="1" step="0.01" id="filter-release">
                 <label for='filter-release'>
-                release
+                Release
                 </label>
+            </fieldset>
+            <fieldset id="delay-controls">
+                <legend>Delay</legend>
+                <div class="vertical-slider">
+                    <input orient="vertical" type="range" min="0" max="1" step="0.001" id="delay-feedback">
+                    <label for='delay-feedback'>Feedback</label>
+                </div>
+                <div class="vertical-slider">
+                    <input orient="vertical" type="range" min="0" max="5" step="0.001" id="delay-time">
+                    <label for='delay-time'>Time</label>
+                </div>
             </fieldset>
         </form>
         

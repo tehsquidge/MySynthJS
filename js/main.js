@@ -60,7 +60,74 @@ AsrEG.prototype = Object.create(null,{
     }
 });
 
-function Voice(){
+function DelayModule(){
+    this._delay = audioCtx.createDelay(5.0);
+    this._delay.delayTime.value = 2.5;
+        
+    this._delayGain = audioCtx.createGain();
+    this._delayGain.gain.value = 0.5;
+    this._delayGain.connect(this._delay)
+
+    this._input = audioCtx.createMediaStreamDestination();
+    this._output = audioCtx.createMediaStreamDestination();
+    
+    this._merger = audioCtx.createChannelMerger(2);
+    this._splitter = audioCtx.createChannelSplitter(2);
+        
+    this._input.connect(this._merger,0,1);
+    this._input.connect(this._merger,0,0);
+    this._delay.connect(this._merger,0,1);
+    this._delay.connect(this._merger,0,0);
+    
+    this._merger.connect(this._splitter);
+    
+    this._splitter.connect(this._output,0);
+    this._splitter.connect(this._delayGain,1);
+
+}
+
+DelayModule.prototype = Object.create(null,{
+    constructor:{
+        value: DelayModule
+    },
+    delayTime: {
+        get: function(){
+            return this._delay.delayTime.value;
+        },
+        set: function(d){
+            this._delay.delayTime.value = d;
+        }
+    },
+    delayFeedback: {
+        get: function(){
+            return this._delayGain.gain.value;
+        },
+        set: function(d){
+            this._delayGain.gain.value  = d;
+        }
+    },
+    getInput: {
+        value: function(){
+            return this._input;
+        }
+    },
+    getOutput: {
+        value: function(){
+            return this._output;
+        }
+    },
+    params: {
+        get: function(){
+            return { feedback: this._delayGain.gain.value, time: this._delay.delayTime.value }
+        },
+        set: function(a){
+            this._delay.delayTime.value = a.time;
+            this._delayGain.gain.value = a.feedback;
+        }
+    }
+});
+
+function Voice(output){
     this._oscSquare = audioCtx.createOscillator();
     this._oscSquare.type = 'square';
     this._oscSquare.frequency.value = 440;
@@ -121,7 +188,8 @@ function Voice(){
     
     this._oscMixerOutput.connect(this._vca);
     this._vca.connect(this._filter);
-    this._filter.connect(audioCtx.destination);
+    this._filter.connect(output,0,0);
+    this._filter.connect(output,0,1);
 }
 
 Voice.prototype = Object.create(null, {
@@ -200,8 +268,10 @@ function VoicePool() {
     this._voicesFrequencies = [];
     this._voiceCycleIdx = 0;
     
+    this._output = audioCtx.createChannelMerger(2);
+    
     for(var i = 0; i < this._voiceCount; i++){
-        this._voices[i] = new Voice();
+        this._voices[i] = new Voice(this._output);
         this._voicesFrequencies[i] = 0;
     }
 }
@@ -262,12 +332,29 @@ VoicePool.prototype = Object.create(null,{
         value: function(){
             return this._voices;
         }
+    },
+    getOutput: {
+        value: function(){
+            return this._output;
+        }
     }
 });
 
+
+/* SIGNAL PATHS */
 var audioCtx = new AudioContext();
+var finalOutput = audioCtx.createMediaStreamDestination();
+
+finalOutput.connect(audioCtx.destination);
 
 var voiceManager = new VoicePool();
+var delay = new DelayModule();
+
+voiceManager.getOutput().connect(delay.getInput());
+
+delay.getOutput().connect(finalOutput);
+
+/* END SIGNAL PATHS */
 
 var notes = {
     'Ab': 12.98,
@@ -397,6 +484,14 @@ domReady(function() {
             var v = { a: document.querySelector('#filter-attack').value, s: document.querySelector('#filter-sustain').value, r: document.querySelector('#filter-release').value };
             voiceManager.getVoices().forEach(function(e){
                 e.filterEnvParams = v;   
+            });
+        }
+    });
+    document.querySelectorAll('#delay-controls input').forEach(function(e){
+        e.oninput = function(){
+            var v = { feedback: document.querySelector('#delay-feedback').value, time: document.querySelector('#delay-time').value };
+            voiceManager.getVoices().forEach(function(e){
+                delay.params = v;   
             });
         }
     });

@@ -1,4 +1,4 @@
-function Voice(){
+function Voice(output){
     this._oscSquare = audioCtx.createOscillator();
     this._oscSquare.type = 'square';
     this._oscSquare.frequency.value = 440;
@@ -59,7 +59,8 @@ function Voice(){
     
     this._oscMixerOutput.connect(this._vca);
     this._vca.connect(this._filter);
-    this._filter.connect(audioCtx.destination);
+    this._filter.connect(output,0,0);
+    this._filter.connect(output,0,1);
 }
 
 Voice.prototype = Object.create(null, {

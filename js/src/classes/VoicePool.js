@@ -4,8 +4,10 @@ function VoicePool() {
     this._voicesFrequencies = [];
     this._voiceCycleIdx = 0;
     
+    this._output = audioCtx.createChannelMerger(2);
+    
     for(var i = 0; i < this._voiceCount; i++){
-        this._voices[i] = new Voice();
+        this._voices[i] = new Voice(this._output);
         this._voicesFrequencies[i] = 0;
     }
 }
@@ -65,6 +67,11 @@ VoicePool.prototype = Object.create(null,{
     getVoices: {
         value: function(){
             return this._voices;
+        }
+    },
+    getOutput: {
+        value: function(){
+            return this._output;
         }
     }
 });

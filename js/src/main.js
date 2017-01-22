@@ -91,4 +91,12 @@ domReady(function() {
             });
         }
     });
+    document.querySelectorAll('#delay-controls input').forEach(function(e){
+        e.oninput = function(){
+            var v = { feedback: document.querySelector('#delay-feedback').value, time: document.querySelector('#delay-time').value };
+            voiceManager.getVoices().forEach(function(e){
+                delay.params = v;   
+            });
+        }
+    });
 });
