@@ -209,7 +209,7 @@ Voice.prototype = Object.create(null, {
     gateOn: {
         value: function(){
             this._vcaEnv.gateOn();
-            this._filterEnv.gateOn();
+            this._filterEnv.gateOn(this._oscSquare.frequency.value);
         }
     },
     gateOff: {
