@@ -3,7 +3,7 @@ function AsrEG(){
     this._sustainLevel = 0.5;
     this._releaseTime = 0.1;
     
-    this._param = null;
+    this._targetModule = null;
 }
 
 AsrEG.prototype = Object.create(null,{
@@ -12,26 +12,26 @@ AsrEG.prototype = Object.create(null,{
     },
     connect: {
         value: function(param){
-            this._param = param;
+            this._targetModule = param;
         }
     },
     gateOn: {
         value: function(base){
-            if(this._param){
-                base = (typeof base !== 'undefined') ?  base : this._param.base;
+            if(this._targetModule){
+                base = (typeof base !== 'undefined') ?  base : this._targetModule.base;
                 base = (typeof base !== 'undefined') ?  base : 0;
                 base = (base < 0) ? 0 : base;
                 var now = audioCtx.currentTime;
-                this._param.cancelScheduledValues(now);
-                this._param.linearRampToValueAtTime(base + this._sustainLevel, now + this._attackTime);
+                this._targetModule.cancelScheduledValues(now);
+                this._targetModule.linearRampToValueAtTime(base + this._sustainLevel, now + this._attackTime);
             }
         }
     },
     gateOff: {
         value: function(){
-            if(this._param){
+            if(this._targetModule){
                 var now = audioCtx.currentTime;
-                this._param.linearRampToValueAtTime(0, now + this._attackTime + this._releaseTime);
+                this._targetModule.linearRampToValueAtTime(0, now + this._attackTime + this._releaseTime);
             }
         }
     },
@@ -210,7 +210,8 @@ Voice.prototype = Object.create(null, {
     gateOn: {
         value: function(){
             this._vcaEnv.gateOn();
-            this._filterEnv.gateOn(this._filter.base);
+            var base = (this._filter.kbdTrack)? this._oscSquare.frequency.value + this._filter.frequency.base : this._filter.frequency.base;
+            this._filterEnv.gateOn(base);
         }
     },
     gateOff: {
@@ -241,12 +242,13 @@ Voice.prototype = Object.create(null, {
     },
     filterParams: {
         get: function(){
-            return { c: this._filter.frequency.base, r: this._filter.Q.value, t: this._filter.type}
+            return { c: this._filter.frequency.base, r: this._filter.Q.value, t: this._filter.type, kbdTrack: this._filter.kbdTrack }
         },
         set: function(p){
             this._filter.frequency.base = parseFloat(p.c);
             this._filter.Q.value = parseFloat(p.r);
             this._filter.type = p.t;
+            this._filter.kbdTrack = p.kbdTrack;
         }
     },
     vcoMixParams: {
@@ -283,13 +285,20 @@ VoicePool.prototype = Object.create(null,{
     },
     getFreeVoice: {
         value: function(freq){
+            //is the freq already playing
+            for(var i = 0; i < this._voiceCount; i++){
+                if(this._voicesFrequencies[i] == freq){
+                    v = i;
+                    return v; //note already playing on a voice so return that
+                }
+            }
             var v = this._voiceCycleIdx; //if we can't find a free voice we'll use the first
             for(var i = 0; i < this._voiceCount; i++){
                 var idx = this._voiceCycleIdx + i;
-                if(idx = this._voiceCount){
+                if(idx == this._voiceCount){
                     idx -= this._voiceCycleIdx;
                 }
-                if(this._voicesFrequencies[idx] == 0){ //if the voice is free
+                if(this._voicesFrequencies[idx] == 0){ //if the voice is free (note: that this is the assigned frequency not the one actually sounding. If it's "assigned" 0 freq then it's been released although it may still be playing a sound)
                     v = idx;
                     break;
                 }
@@ -455,46 +464,61 @@ domReady(function() {
             }
         }
     }
+    
+    var updateVcoControls = function(){
+        var mix = { square: document.querySelector('#vco-square-mix').value, saw: document.querySelector('#vco-saw-mix').value, sine: document.querySelector('#vco-sine-mix').value };
+        voiceManager.getVoices().forEach(function(e){
+            e.vcoMixParams = mix;   
+        });
+    };
+    updateVcoControls();
     document.querySelectorAll('#vco-controls input').forEach(function(e){
-        e.oninput = function(){
-            var mix = { square: document.querySelector('#vco-square-mix').value, saw: document.querySelector('#vco-saw-mix').value, sine: document.querySelector('#vco-sine-mix').value };
-            voiceManager.getVoices().forEach(function(e){
-                e.vcoMixParams = mix;   
-            });
-        }
+        e.oninput = updateVcoControls;
     });  
     
+    var updateFilter = function(){
+        var v = { c: document.querySelector('#filter-cutoff').value, r: document.querySelector('#filter-resonance').value, t: document.querySelector('#filter-type').value, kbdTrack: document.querySelector('#filter-track').checked };
+        voiceManager.getVoices().forEach(function(e){
+            e.filterParams = v;   
+        });
+    };
+    updateFilter();    
     document.querySelectorAll('#filter-controls input, #filter-controls select').forEach(function(e){
-        e.oninput = function(){
-            var v = { c: document.querySelector('#filter-cutoff').value, r: document.querySelector('#filter-resonance').value, t: document.querySelector('#filter-type').value };
-            voiceManager.getVoices().forEach(function(e){
-                e.filterParams = v;   
-            });
-        }
+        e.oninput = updateFilter;
+        e.onchange = updateFilter;
     });   
+    
+    var updateVcaEnv = function(){
+        var v = { a: document.querySelector('#vca-attack').value, s: document.querySelector('#vca-sustain').value, r: document.querySelector('#vca-release').value };
+        voiceManager.getVoices().forEach(function(e){
+            e.vcaEnvParams = v;   
+        });
+    };
+    updateVcaEnv();
     document.querySelectorAll('#vca-env-controls input').forEach(function(e){
-        e.oninput = function(){
-            var v = { a: document.querySelector('#vca-attack').value, s: document.querySelector('#vca-sustain').value, r: document.querySelector('#vca-release').value };
-            voiceManager.getVoices().forEach(function(e){
-                e.vcaEnvParams = v;   
-            });
-        }
+        e.oninput = updateVcaEnv;
     });
+    
+    var updateFilterEnv = function(){
+        var v = { a: document.querySelector('#filter-attack').value, s: document.querySelector('#filter-sustain').value, r: document.querySelector('#filter-release').value };
+        voiceManager.getVoices().forEach(function(e){
+            e.filterEnvParams = v;   
+        });
+    };
+    updateFilterEnv();
     document.querySelectorAll('#filter-env-controls input').forEach(function(e){
-        e.oninput = function(){
-            var v = { a: document.querySelector('#filter-attack').value, s: document.querySelector('#filter-sustain').value, r: document.querySelector('#filter-release').value };
-            voiceManager.getVoices().forEach(function(e){
-                e.filterEnvParams = v;   
-            });
-        }
+        e.oninput = updateFilterEnv;
     });
+    
+    var updateDelay = function(){
+        var v = { feedback: document.querySelector('#delay-feedback').value, time: document.querySelector('#delay-time').value };
+        voiceManager.getVoices().forEach(function(e){
+            delay.params = v;   
+        });
+    }
+    updateDelay();
     document.querySelectorAll('#delay-controls input').forEach(function(e){
-        e.oninput = function(){
-            var v = { feedback: document.querySelector('#delay-feedback').value, time: document.querySelector('#delay-time').value };
-            voiceManager.getVoices().forEach(function(e){
-                delay.params = v;   
-            });
-        }
+        e.oninput = updateDelay;
     });
     /*
     var BPM = 120;

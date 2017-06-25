@@ -52,6 +52,10 @@
                     <input orient="vertical" type="range" min="0" max="20" step=".001" id="filter-resonance">
                     <label for='filter-resonance'>Resonance</label>
                 </div>
+                <div>
+                    <input id="filter-track" name="filter-track" type="checkbox" checked>
+                    <label for="filter-track">Track</label>
+                </div>
             </fieldset>
             <fieldset id="vca-env-controls">
                 <legend>VCA ENV</legend>
@@ -86,11 +90,11 @@
             <fieldset id="delay-controls">
                 <legend>Delay</legend>
                 <div class="vertical-slider">
-                    <input orient="vertical" type="range" min="0" max="1" step="0.001" id="delay-feedback">
+                    <input orient="vertical" type="range" min="0" max="1" step="0.001" value="0" id="delay-feedback">
                     <label for='delay-feedback'>Feedback</label>
                 </div>
                 <div class="vertical-slider">
-                    <input orient="vertical" type="range" min="0" max="5" step="0.001" id="delay-time">
+                    <input orient="vertical" type="range" min="0" max="2" step="0.001" value="0" id="delay-time">
                     <label for='delay-time'>Time</label>
                 </div>
             </fieldset>

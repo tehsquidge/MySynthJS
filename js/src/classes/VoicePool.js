@@ -18,13 +18,20 @@ VoicePool.prototype = Object.create(null,{
     },
     getFreeVoice: {
         value: function(freq){
+            //is the freq already playing
+            for(var i = 0; i < this._voiceCount; i++){
+                if(this._voicesFrequencies[i] == freq){
+                    v = i;
+                    return v; //note already playing on a voice so return that
+                }
+            }
             var v = this._voiceCycleIdx; //if we can't find a free voice we'll use the first
             for(var i = 0; i < this._voiceCount; i++){
                 var idx = this._voiceCycleIdx + i;
-                if(idx = this._voiceCount){
+                if(idx == this._voiceCount){
                     idx -= this._voiceCycleIdx;
                 }
-                if(this._voicesFrequencies[idx] == 0){ //if the voice is free
+                if(this._voicesFrequencies[idx] == 0){ //if the voice is free (note: that this is the assigned frequency not the one actually sounding. If it's "assigned" 0 freq then it's been released although it may still be playing a sound)
                     v = idx;
                     break;
                 }

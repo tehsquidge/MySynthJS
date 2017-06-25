@@ -80,7 +80,8 @@ Voice.prototype = Object.create(null, {
     gateOn: {
         value: function(){
             this._vcaEnv.gateOn();
-            this._filterEnv.gateOn(this._filter.base);
+            var base = (this._filter.kbdTrack)? this._oscSquare.frequency.value + this._filter.frequency.base : this._filter.frequency.base;
+            this._filterEnv.gateOn(base);
         }
     },
     gateOff: {
@@ -111,12 +112,13 @@ Voice.prototype = Object.create(null, {
     },
     filterParams: {
         get: function(){
-            return { c: this._filter.frequency.base, r: this._filter.Q.value, t: this._filter.type}
+            return { c: this._filter.frequency.base, r: this._filter.Q.value, t: this._filter.type, kbdTrack: this._filter.kbdTrack }
         },
         set: function(p){
             this._filter.frequency.base = parseFloat(p.c);
             this._filter.Q.value = parseFloat(p.r);
             this._filter.type = p.t;
+            this._filter.kbdTrack = p.kbdTrack;
         }
     },
     vcoMixParams: {
