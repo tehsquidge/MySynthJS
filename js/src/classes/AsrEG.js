@@ -21,8 +21,6 @@ AsrEG.prototype = Object.create(null,{
                 base = (typeof base !== 'undefined') ?  base : this._param.base;
                 base = (typeof base !== 'undefined') ?  base : 0;
                 base = (base < 0) ? 0 : base;
-                console.log('base: ' + base);
-                console.log('sustain: ' + this._sustainLevel);
                 var now = audioCtx.currentTime;
                 this._param.cancelScheduledValues(now);
                 this._param.linearRampToValueAtTime(base + this._sustainLevel, now + this._attackTime);
