@@ -99,4 +99,22 @@ domReady(function() {
             });
         }
     });
+    /*
+    var BPM = 120;
+    var seq = [
+        notes['A'] * Math.pow(2,3),
+        notes['C'] * Math.pow(2,3),
+        notes['D'] * Math.pow(2,3),
+        notes['G'] * Math.pow(2,3)
+    ];
+    var i = 0;
+    setInterval(function(){
+        voiceManager.keyDown(seq[i]);
+        voiceManager.keyUp(seq[i]);
+        i++;
+        if(i == seq.length){
+            i = 0;
+        }
+    }, 60000 / BPM ); */
+
 });

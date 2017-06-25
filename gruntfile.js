@@ -12,13 +12,20 @@ module.exports = function(grunt) {
         dest: 'js/main.js',
         nonull: true
      }
-    }
-    
+    },
+    watch: {
+        js: {
+            files: ['js/src/**/*.js'],
+            tasks: ['build']
+        }
+    }    
   });
 
   // load the tasks
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-watch');
+
 
 
 

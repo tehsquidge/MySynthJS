@@ -20,6 +20,9 @@ AsrEG.prototype = Object.create(null,{
             if(this._param){
                 base = (typeof base !== 'undefined') ?  base : this._param.base;
                 base = (typeof base !== 'undefined') ?  base : 0;
+                base = (base < 0) ? 0 : base;
+                console.log('base: ' + base);
+                console.log('sustain: ' + this._sustainLevel);
                 var now = audioCtx.currentTime;
                 this._param.cancelScheduledValues(now);
                 this._param.linearRampToValueAtTime(base + this._sustainLevel, now + this._attackTime);
@@ -209,7 +212,7 @@ Voice.prototype = Object.create(null, {
     gateOn: {
         value: function(){
             this._vcaEnv.gateOn();
-            this._filterEnv.gateOn(this._oscSquare.frequency.value);
+            this._filterEnv.gateOn(this._filter.base);
         }
     },
     gateOff: {
@@ -495,4 +498,22 @@ domReady(function() {
             });
         }
     });
+    /*
+    var BPM = 120;
+    var seq = [
+        notes['A'] * Math.pow(2,3),
+        notes['C'] * Math.pow(2,3),
+        notes['D'] * Math.pow(2,3),
+        notes['G'] * Math.pow(2,3)
+    ];
+    var i = 0;
+    setInterval(function(){
+        voiceManager.keyDown(seq[i]);
+        voiceManager.keyUp(seq[i]);
+        i++;
+        if(i == seq.length){
+            i = 0;
+        }
+    }, 60000 / BPM ); */
+
 });
