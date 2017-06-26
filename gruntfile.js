@@ -6,6 +6,8 @@ module.exports = function(grunt) {
       build: {
         src: [
                 'js/src/classes/*.js',
+                'js/src/classes/MIDI/MidiInputDevice.js',
+                'js/src/classes/MIDI/LaunchPad.js',
                 'js/src/header.js',
                 'js/src/main.js'
              ],

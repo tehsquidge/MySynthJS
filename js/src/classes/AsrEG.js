@@ -14,6 +14,7 @@ AsrEG.prototype = Object.create(null,{
         value: function(param){
             this._targetModule = param;
         }
+        
     },
     gateOn: {
         value: function(base){
