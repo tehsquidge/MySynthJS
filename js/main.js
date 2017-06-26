@@ -474,9 +474,9 @@ LaunchPad.prototype = Object.create(MidiInputDevice.prototype,{
                     var n = this._map[x][y]; //note in freq
                     var freq = this._notes[n[0]] * Math.pow(2,n[1]+parseInt(document.getElementById('octave').value));
                     if(freq % this._notes[this._root] != 0){ 
-                        color = 83;
+                        color = 17;
                     }else{
-                        color: 113;
+                        color: 126;
                     }
                     break;
             }
