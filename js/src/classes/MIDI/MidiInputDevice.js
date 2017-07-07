@@ -9,7 +9,16 @@ MidiInputDevice.prototype = Object.create(Object,{
     },
     onMIDIMessage: {
         value: function(message) {
-            
+            var freq = 440 * Math.pow(2, (message.data[1] - 69) / 12);
+            switch(message.data[0]){
+                case 144:
+                    voiceManager.keyDown(freq);
+                    break;
+                case 128:
+                    voiceManager.keyUp(freq);
+                    break;
+            }
+
         }
     },
     input: {
